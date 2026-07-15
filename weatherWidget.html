@@ -66,9 +66,9 @@ https://openweathermap.org/
 <body>
 	<script>
 		var wVer = 101;
-		if (typeof weatherVersion === "number" && weatherVersion > wVer && localStorage.getItem(wVer + "." + weatherVersion + "update") !== "1" && autoCheckUpdates == true) {
+		if (typeof weatherVersion === "number" && weatherVersion > wVer && localStorage.getItem(wVer + "." + weatherVersion + "update") !== "1" && autoCheckUpdates === true) {
 			var updateVersion = weatherFriendly || weatherVersion;
-			if (confirm("g4Weather v" + updateVersion + " Update Available. Please visit:\nhttps://github.com/ngholson/obs_weather_time_overlay\nClick 'CANCEL' to hide future notifications about this update") != true) {
+			if (!confirm("g4Weather v" + updateVersion + " Update Available. Please visit:\nhttps://github.com/ngholson/obs_weather_time_overlay\nClick 'CANCEL' to hide future notifications about this update")) {
 				localStorage.setItem(wVer + "." + weatherVersion + "update", 1);
 			}
 		}
@@ -140,7 +140,7 @@ https://openweathermap.org/
 			return normalizedMode;
 		}
 		function getCurrentDisplayTime() {
-			return time24hour != true ? currentTime(new Date()) : time24(new Date());
+			return !time24hour ? currentTime(new Date()) : time24(new Date());
 		}
 		function escapeHtml(value) {
 			return String(value == null ? "" : value).replace(/[&<>"']/g, function (character) {
@@ -204,7 +204,7 @@ https://openweathermap.org/
 			return escapeHtml(locationName + (locationState ? ", " + locationState : ""));
 		}
 		function isValidIconCode(iconCode) {
-			// OpenWeather icon codes are two digits followed by d/night, for example 01d or 10n.
+			// OpenWeather icon codes are two digits followed by d (day) or n (night), for example 01d or 10n.
 			return openWeatherIconCodePattern.test(String(iconCode));
 		}
 		function getWeatherIconHtml(iconCode) {
