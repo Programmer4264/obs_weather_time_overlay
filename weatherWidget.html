@@ -66,8 +66,9 @@ https://openweathermap.org/
 <body>
 	<script>
 		var wVer = 101;
-		if (weatherVersion > wVer && localStorage.getItem(wVer + "." + weatherVersion + "update") != 1 && autoCheckUpdates == true) {
-			if (confirm("g4Weather v" + weatherFriendly + " Update Available. Please visit:\nhttps://github.com/ngholson/obs_weather_time_overlay\nClick 'CANCEL' to hide future notifications about this update") != true) {
+		if (typeof weatherVersion === "number" && weatherVersion > wVer && localStorage.getItem(wVer + "." + weatherVersion + "update") !== "1" && autoCheckUpdates === true) {
+			var updateVersion = weatherFriendly || weatherVersion;
+			if (!confirm("g4Weather v" + updateVersion + " Update Available. Please visit:\nhttps://github.com/ngholson/obs_weather_time_overlay\nClick 'CANCEL' to hide future notifications about this update")) {
 				localStorage.setItem(wVer + "." + weatherVersion + "update", 1);
 			}
 		}
@@ -77,10 +78,16 @@ https://openweathermap.org/
 	</center>
 	<script>
 		var language = window.navigator.userLanguage || window.navigator.language;
-		const regionTranslate = new Intl.DisplayNames([language], { type: 'region' });
+		const htmlEntities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+		const openWeatherIconCodePattern = /^[0-9]{2}[dn]$/;
+		const supportedIconHeightPattern = /^[0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem|vh|vw|%|ch|dvh|svw)$/;
+		const regionTranslate = typeof Intl !== "undefined" && typeof Intl.DisplayNames === "function"
+			? new Intl.DisplayNames([language], { type: 'region' })
+			: null;
 		document.querySelector(':root').style.setProperty('--txtSize', textSize); document.querySelector(':root').style.setProperty('--txtColor', textColor);
 		document.querySelector(':root').style.setProperty('--wBack', weatherBackground);
 		document.querySelector(':root').style.setProperty('--wBorder', weatherBorder + "px");
+		var clockSeparator = clockSeperator;
 		refreshData();
 
 		// Function to convert a string to proper case
@@ -90,56 +97,198 @@ https://openweathermap.org/
 			});
 		}
 
-
 		function weatherCheck() {
-			var time = time24hour != true ? currentTime(new Date()) : time24(new Date());
+			var displayMode = getWeatherDisplayMode();
+			if (displayMode == "time") {
+				renderWeatherMessage(getCurrentDisplayTime());
+				return;
+			}
+
 			$.ajax({
 				url: 'https://api.openweathermap.org/data/2.5/weather',
 				data: { units: `${yourUnits}`, q: `${yourCity}`, appid: `${yourApiKey}`, lang: `${language}` },
 				dataType: 'json',
 				success: function (apiResponse) {
-					if (dynamicBackground == 1) {
-						if (apiResponse.weather[0].icon.slice(2) == "n") { document.querySelector(':root').style.setProperty('--wBack', "linear-gradient(to bottom, black , dimgrey"); document.querySelector(':root').style.setProperty('--txtColor', "white"); }
-						else { document.querySelector(':root').style.setProperty('--wBack', "linear-gradient(to bottom, skyblue ," + weatherBackground); document.querySelector(':root').style.setProperty('--txtColor', "black"); }
+					var weatherDetails = getWeatherDetails(apiResponse);
+					if (weatherDetails == null) {
+						renderUnavailableWeather("Weather data unavailable");
+						return;
 					}
 
-					var weatherDescription = toProperCase(apiResponse.weather[0].description);
-					var curtemp = Math.round(apiResponse.main.temp);
-					var wimg = "./images/pack" + `${iconPack}` + "/" + apiResponse.weather[0].icon + ".png";
+					updateDynamicBackground(weatherDetails.iconCode);
 					$.ajax({
-						url: 'http://api.openweathermap.org/geo/1.0/direct',
+						url: 'https://api.openweathermap.org/geo/1.0/direct',
 						data: { q: `${yourCity}`, appid: `${yourApiKey}` },
 						dataType: 'json',
 						success: function (geoResponse) {
-
-							if (geoResponse[0].country.toLowerCase() != "us") {
-								if (geoResponse[0].state == apiResponse.name || geoResponse[0].state == null) {
-									geoResponse[0].state = regionTranslate.of(geoResponse[0].country);
-								}
-							}
-							if (weatherDisplay.toLowerCase() == "temp") {
-								if (weatherIcons == 1) { document.getElementById("id-weather").innerHTML = `<img style='height: ${iconHeight};' src=${wimg}> ${curtemp}&deg;`; return; }
-								document.getElementById("id-weather").innerHTML = `${curtemp}&deg;`; return;
-							}
-							if (weatherDisplay.toLowerCase() == "time") { document.getElementById("id-weather").innerHTML = `${time}`; return; }
-							if (weatherDisplay.toLowerCase() == "simple") {
-								if (weatherIcons == 1) { document.getElementById("id-weather").innerHTML = `${curtemp}&deg; <img style='height: ${iconHeight};' src=${wimg}> ${time}`; return; }
-								document.getElementById("id-weather").innerHTML = `${curtemp}&deg;  ${time}`; return;
-							}
-							if (weatherDisplay.toLowerCase() == "weather") {
-								if (weatherIcons == 1) {
-									document.getElementById("id-weather").innerHTML = `${geoResponse[0].name}, ${geoResponse[0].state}: ${curtemp}&deg; <img style='height: ${iconHeight};' src=${wimg}> ${weatherDescription}`;
-								} else { document.getElementById("id-weather").innerHTML = `${geoResponse[0].name}, ${geoResponse[0].state}: ${curtemp}&deg; \/ ${weatherDescription}`; }
-								return;
-							}
-							//start of full
-							if (weatherIcons == 1) {
-								document.getElementById("id-weather").innerHTML = `${geoResponse[0].name}, ${geoResponse[0].state}: ${curtemp}&deg; <img style='height: ${iconHeight};' src=${wimg}> ${weatherDescription} ${clockSeperator} ${time}`;
-							} else { document.getElementById("id-weather").innerHTML = `${geoResponse[0].name}, ${geoResponse[0].state}: ${curtemp}&deg; \/ ${weatherDescription} ${clockSeperator} ${time}`; }
+							renderWeather(weatherDetails, apiResponse, geoResponse);
+						},
+						error: function () {
+							renderWeather(weatherDetails, apiResponse, null);
 						}
 					});
+				},
+				error: function () {
+					renderUnavailableWeather("Weather data unavailable");
 				}
 			});
+		}
+		function getWeatherDisplayMode() {
+			var normalizedMode = String(weatherDisplay || "full").toLowerCase();
+			if (["full", "weather", "simple", "temp", "time"].indexOf(normalizedMode) === -1) {
+				return "full";
+			}
+			return normalizedMode;
+		}
+		function getCurrentDisplayTime() {
+			return !time24hour ? currentTime(new Date()) : time24(new Date());
+		}
+		function escapeHtml(value) {
+			return String(value == null ? "" : value).replace(/[&<>"']/g, function (character) {
+				return htmlEntities[character];
+			});
+		}
+		function renderWeatherMessage(message) {
+			document.getElementById("id-weather").innerHTML = escapeHtml(message);
+		}
+		function getWeatherDetails(apiResponse) {
+			if (!apiResponse || !apiResponse.main || typeof apiResponse.main.temp !== "number" || !apiResponse.weather || !apiResponse.weather[0]) {
+				return null;
+			}
+			return {
+				description: toProperCase(apiResponse.weather[0].description || "Unavailable"),
+				temp: Math.round(apiResponse.main.temp),
+				iconCode: apiResponse.weather[0].icon || ""
+			};
+		}
+		function updateDynamicBackground(iconCode) {
+			if (dynamicBackground != 1) {
+				document.querySelector(':root').style.setProperty('--wBack', weatherBackground);
+				document.querySelector(':root').style.setProperty('--txtColor', textColor);
+				return;
+			}
+
+			if (String(iconCode).slice(2) == "n") {
+				document.querySelector(':root').style.setProperty('--wBack', "linear-gradient(to bottom, black, dimgray)");
+				document.querySelector(':root').style.setProperty('--txtColor', "white");
+				return;
+			}
+
+			document.querySelector(':root').style.setProperty('--wBack', "linear-gradient(to bottom, skyblue, " + weatherBackground + ")");
+			document.querySelector(':root').style.setProperty('--txtColor', "black");
+		}
+		function getGeoEntry(geoResponse) {
+			if (!Array.isArray(geoResponse) || geoResponse.length === 0 || !geoResponse[0]) {
+				return null;
+			}
+			return geoResponse[0];
+		}
+		function getRegionName(countryCode) {
+			if (!countryCode) {
+				return "";
+			}
+			try {
+				return regionTranslate ? (regionTranslate.of(countryCode) || countryCode) : countryCode;
+			} catch (error) {
+				return countryCode;
+			}
+		}
+		function getLocationLabel(apiResponse, geoResponse) {
+			var geoEntry = getGeoEntry(geoResponse);
+			var locationName = geoEntry && geoEntry.name ? geoEntry.name : (apiResponse && apiResponse.name ? apiResponse.name : yourCity);
+			var locationState = geoEntry && geoEntry.state ? geoEntry.state : "";
+			var countryCode = geoEntry && geoEntry.country ? geoEntry.country : (apiResponse && apiResponse.sys ? apiResponse.sys.country : "");
+
+			if (countryCode && countryCode.toLowerCase() !== "us" && (locationState === (apiResponse && apiResponse.name ? apiResponse.name : "") || locationState === "")) {
+				locationState = getRegionName(countryCode);
+			}
+			return escapeHtml(locationName + (locationState ? ", " + locationState : ""));
+		}
+		function isValidIconCode(iconCode) {
+			// OpenWeather icon codes use two digits plus d (day) or n (night), for example 01d, 10n, or 13d.
+			return openWeatherIconCodePattern.test(String(iconCode));
+		}
+		function getWeatherIconHtml(iconCode) {
+			if (Number(weatherIcons) !== 1 || isValidIconCode(iconCode) === false) {
+				return "";
+			}
+			var wimg = "./images/pack" + getIconPackId() + "/" + iconCode + ".png";
+			return `<img style='height: ${getIconHeightValue()};' src='${wimg}' alt=''>`;
+		}
+		function getIconPackId() {
+			var parsedIconPack = parseInt(iconPack, 10);
+			return parsedIconPack > 0 ? parsedIconPack : 1;
+		}
+		function getIconHeightValue() {
+			var normalizedIconHeight = String(iconHeight || "").trim();
+			// Collapse accidental spaces in hand-edited values such as "22 px" before validating the CSS unit.
+			var compactIconHeight = normalizedIconHeight.replace(/\s+/g, "");
+			return supportedIconHeightPattern.test(compactIconHeight) ? compactIconHeight : "22px";
+		}
+		function getTimeSeparatorHtml() {
+			if (!clockSeparator) {
+				return " ";
+			}
+			return " " + escapeHtml(clockSeparator) + " ";
+		}
+		function renderUnavailableWeather(message) {
+			document.querySelector(':root').style.setProperty('--wBack', weatherBackground);
+			document.querySelector(':root').style.setProperty('--txtColor', textColor);
+
+			var time = escapeHtml(getCurrentDisplayTime());
+			var safeMessage = escapeHtml(message || "Weather unavailable");
+			var displayMode = getWeatherDisplayMode();
+			if (displayMode == "time") {
+				document.getElementById("id-weather").innerHTML = time;
+				return;
+			}
+			if (displayMode == "simple") {
+				document.getElementById("id-weather").innerHTML = `${safeMessage} ${time}`;
+				return;
+			}
+			if (displayMode == "full") {
+				document.getElementById("id-weather").innerHTML = `${safeMessage}${getTimeSeparatorHtml()}${time}`;
+				return;
+			}
+			document.getElementById("id-weather").innerHTML = safeMessage;
+		}
+		function renderWeather(weatherDetails, apiResponse, geoResponse) {
+			var displayMode = getWeatherDisplayMode();
+			var time = escapeHtml(getCurrentDisplayTime());
+			var temp = `${weatherDetails.temp}&deg;`;
+			var iconHtml = getWeatherIconHtml(weatherDetails.iconCode);
+			var locationLabel = getLocationLabel(apiResponse, geoResponse);
+			var weatherDescription = escapeHtml(weatherDetails.description);
+
+			if (displayMode == "temp") {
+				if (iconHtml != "") {
+					document.getElementById("id-weather").innerHTML = `${iconHtml} ${temp}`;
+					return;
+				}
+				document.getElementById("id-weather").innerHTML = temp;
+				return;
+			}
+			if (displayMode == "simple") {
+				if (iconHtml != "") {
+					document.getElementById("id-weather").innerHTML = `${temp} ${iconHtml} ${time}`;
+					return;
+				}
+				document.getElementById("id-weather").innerHTML = `${temp} ${time}`;
+				return;
+			}
+			if (displayMode == "weather") {
+				if (iconHtml != "") {
+					document.getElementById("id-weather").innerHTML = `${locationLabel}: ${temp} ${iconHtml} ${weatherDescription}`;
+					return;
+				}
+				document.getElementById("id-weather").innerHTML = `${locationLabel}: ${temp} / ${weatherDescription}`;
+				return;
+			}
+			if (iconHtml != "") {
+				document.getElementById("id-weather").innerHTML = `${locationLabel}: ${temp} ${iconHtml} ${weatherDescription}${getTimeSeparatorHtml()}${time}`;
+				return;
+			}
+			document.getElementById("id-weather").innerHTML = `${locationLabel}: ${temp} / ${weatherDescription}${getTimeSeparatorHtml()}${time}`;
 		}
 		function currentTime(date) {
 			var hours = date.getHours();
