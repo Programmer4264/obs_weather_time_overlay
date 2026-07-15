@@ -15,8 +15,8 @@ A lightweight weather + clock browser overlay for OBS Studio.
 
 ## Download
 
-You can download the original project archive here:  
-[Download original ZIP](https://github.com/ngholson/obs_weather_time_overlay/archive/refs/heads/main.zip)
+Download the latest version of this fork here:  
+[Download ZIP](https://github.com/Programmer4264/obs_weather_time_overlay/archive/refs/heads/main.zip)
 
 ---
 
