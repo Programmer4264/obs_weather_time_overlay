@@ -87,6 +87,7 @@ https://openweathermap.org/
 		document.querySelector(':root').style.setProperty('--txtSize', textSize); document.querySelector(':root').style.setProperty('--txtColor', textColor);
 		document.querySelector(':root').style.setProperty('--wBack', weatherBackground);
 		document.querySelector(':root').style.setProperty('--wBorder', weatherBorder + "px");
+		var clockSeparator = clockSeperator;
 		refreshData();
 
 		// Function to convert a string to proper case
@@ -204,7 +205,7 @@ https://openweathermap.org/
 			return escapeHtml(locationName + (locationState ? ", " + locationState : ""));
 		}
 		function isValidIconCode(iconCode) {
-			// OpenWeather icon codes are two digits followed by d (day) or n (night), for example 01d or 10n.
+			// OpenWeather icon codes use two digits plus d (day) or n (night), for example 01d, 10n, or 13d.
 			return openWeatherIconCodePattern.test(String(iconCode));
 		}
 		function getWeatherIconHtml(iconCode) {
@@ -220,14 +221,15 @@ https://openweathermap.org/
 		}
 		function getIconHeightValue() {
 			var normalizedIconHeight = String(iconHeight || "").trim();
+			// Collapse accidental spaces in hand-edited values such as "22 px" before validating the CSS unit.
 			var compactIconHeight = normalizedIconHeight.replace(/\s+/g, "");
 			return supportedIconHeightPattern.test(compactIconHeight) ? compactIconHeight : "22px";
 		}
 		function getTimeSeparatorHtml() {
-			if (!clockSeperator) {
+			if (!clockSeparator) {
 				return " ";
 			}
-			return " " + escapeHtml(clockSeperator) + " ";
+			return " " + escapeHtml(clockSeparator) + " ";
 		}
 		function renderUnavailableWeather(message) {
 			document.querySelector(':root').style.setProperty('--wBack', weatherBackground);
