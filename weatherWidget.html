@@ -78,6 +78,9 @@ https://openweathermap.org/
 	</center>
 	<script>
 		var language = window.navigator.userLanguage || window.navigator.language;
+		const htmlEntities = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+		const openWeatherIconCodePattern = /^[0-9]{2}[dn]$/;
+		const supportedIconHeightPattern = /^[0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem|vh|vw|%|ch|dvh|svw)$/;
 		const regionTranslate = typeof Intl !== "undefined" && typeof Intl.DisplayNames === "function"
 			? new Intl.DisplayNames([language], { type: 'region' })
 			: null;
@@ -141,7 +144,7 @@ https://openweathermap.org/
 		}
 		function escapeHtml(value) {
 			return String(value == null ? "" : value).replace(/[&<>"']/g, function (character) {
-				return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[character];
+				return htmlEntities[character];
 			});
 		}
 		function renderWeatherMessage(message) {
@@ -201,7 +204,8 @@ https://openweathermap.org/
 			return escapeHtml(locationName + (locationState ? ", " + locationState : ""));
 		}
 		function isValidIconCode(iconCode) {
-			return /^[0-9]{2}[dn]$/.test(String(iconCode));
+			// OpenWeather icon codes are two digits followed by d/night, for example 01d or 10n.
+			return openWeatherIconCodePattern.test(String(iconCode));
 		}
 		function getWeatherIconHtml(iconCode) {
 			if (Number(weatherIcons) !== 1 || isValidIconCode(iconCode) === false) {
@@ -217,7 +221,7 @@ https://openweathermap.org/
 		function getIconHeightValue() {
 			var normalizedIconHeight = String(iconHeight || "").trim();
 			var compactIconHeight = normalizedIconHeight.replace(/\s+/g, "");
-			return /^[0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem|vh|vw|%|ch|dvh|svw)$/.test(compactIconHeight) ? compactIconHeight : "22px";
+			return supportedIconHeightPattern.test(compactIconHeight) ? compactIconHeight : "22px";
 		}
 		function getTimeSeparatorHtml() {
 			if (!clockSeperator) {
