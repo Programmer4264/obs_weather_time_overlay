@@ -204,11 +204,19 @@ https://openweathermap.org/
 			return escapeHtml(locationName + (locationState ? ", " + locationState : ""));
 		}
 		function getWeatherIconHtml(iconCode) {
-			if (weatherIcons != 1 || /^[0-9]{2}[dn]$/.test(String(iconCode)) === false) {
+			if (Number(weatherIcons) !== 1 || /^[0-9]{2}[dn]$/.test(String(iconCode)) === false) {
 				return "";
 			}
-			var wimg = "./images/pack" + `${iconPack}` + "/" + iconCode + ".png";
-			return `<img style='height: ${iconHeight};' src='${wimg}' alt=''>`;
+			var wimg = "./images/pack" + getIconPackId() + "/" + iconCode + ".png";
+			return `<img style='height: ${getIconHeightValue()};' src='${wimg}' alt=''>`;
+		}
+		function getIconPackId() {
+			var parsedIconPack = parseInt(iconPack, 10);
+			return parsedIconPack > 0 ? parsedIconPack : 1;
+		}
+		function getIconHeightValue() {
+			var normalizedIconHeight = String(iconHeight || "").trim();
+			return /^[0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem|vh|vw|%)$/.test(normalizedIconHeight) ? normalizedIconHeight : "22px";
 		}
 		function getTimeSeparatorHtml() {
 			if (!clockSeperator) {
