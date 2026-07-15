@@ -2,6 +2,8 @@
 
 A lightweight weather + clock browser overlay for OBS Studio.
 
+[![Changelog](https://img.shields.io/badge/Changelog-CHANGELOG.md-blue)](./CHANGELOG.md)
+
 > Original project by **[@ngholson](https://github.com/ngholson/obs_weather_time_overlay)**.  
 > This repository is an updated fork that keeps the original concept while improving clarity and compatibility.
 
