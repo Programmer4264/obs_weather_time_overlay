@@ -1,6 +1,5 @@
-# Live Weather and Time Overlay for OBS
+# Lightweight weather + clock browser overlay for OBS Studio.
 
-A lightweight weather + clock browser overlay for OBS Studio.
 
 [![Changelog](https://img.shields.io/badge/Changelog-CHANGELOG.md-blue)](./CHANGELOG.md)
 
@@ -13,9 +12,8 @@ A lightweight weather + clock browser overlay for OBS Studio.
   <img src="./preview.png" alt="Weather and time overlay preview">
 </p>
 
-## Download
-
-Download the latest version of this fork here:  
+## Download the latest version of this fork here: 
+  
 [Download ZIP](https://github.com/Programmer4264/obs_weather_time_overlay/archive/refs/heads/main.zip)
 
 ---
