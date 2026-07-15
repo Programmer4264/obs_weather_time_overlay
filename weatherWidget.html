@@ -66,7 +66,7 @@ https://openweathermap.org/
 <body>
 	<script>
 		var wVer = 101;
-		if (typeof weatherVersion === "number" && weatherVersion > wVer && localStorage.getItem(wVer + "." + weatherVersion + "update") != 1 && autoCheckUpdates == true) {
+		if (typeof weatherVersion === "number" && weatherVersion > wVer && localStorage.getItem(wVer + "." + weatherVersion + "update") !== "1" && autoCheckUpdates == true) {
 			var updateVersion = weatherFriendly || weatherVersion;
 			if (confirm("g4Weather v" + updateVersion + " Update Available. Please visit:\nhttps://github.com/ngholson/obs_weather_time_overlay\nClick 'CANCEL' to hide future notifications about this update") != true) {
 				localStorage.setItem(wVer + "." + weatherVersion + "update", 1);
@@ -195,16 +195,16 @@ https://openweathermap.org/
 			var locationState = geoEntry && geoEntry.state ? geoEntry.state : "";
 			var countryCode = geoEntry && geoEntry.country ? geoEntry.country : (apiResponse && apiResponse.sys ? apiResponse.sys.country : "");
 
-			if (countryCode && countryCode.toLowerCase() != "us" && (locationState == (apiResponse && apiResponse.name ? apiResponse.name : "") || locationState == "")) {
-				locationState = getRegionName(countryCode);
-			}
-			if (locationState == "" && countryCode && countryCode.toLowerCase() != "us") {
+			if (countryCode && countryCode.toLowerCase() !== "us" && (locationState === (apiResponse && apiResponse.name ? apiResponse.name : "") || locationState === "")) {
 				locationState = getRegionName(countryCode);
 			}
 			return escapeHtml(locationName + (locationState ? ", " + locationState : ""));
 		}
+		function isValidIconCode(iconCode) {
+			return /^[0-9]{2}[dn]$/.test(String(iconCode));
+		}
 		function getWeatherIconHtml(iconCode) {
-			if (Number(weatherIcons) !== 1 || /^[0-9]{2}[dn]$/.test(String(iconCode)) === false) {
+			if (Number(weatherIcons) !== 1 || isValidIconCode(iconCode) === false) {
 				return "";
 			}
 			var wimg = "./images/pack" + getIconPackId() + "/" + iconCode + ".png";
@@ -216,7 +216,8 @@ https://openweathermap.org/
 		}
 		function getIconHeightValue() {
 			var normalizedIconHeight = String(iconHeight || "").trim();
-			return /^[0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem|vh|vw|%)$/.test(normalizedIconHeight) ? normalizedIconHeight : "22px";
+			var compactIconHeight = normalizedIconHeight.replace(/\s+/g, "");
+			return /^[0-9]+(?:\.[0-9]+)?(?:px|pt|em|rem|vh|vw|%|ch|dvh|svw)$/.test(compactIconHeight) ? compactIconHeight : "22px";
 		}
 		function getTimeSeparatorHtml() {
 			if (!clockSeperator) {
