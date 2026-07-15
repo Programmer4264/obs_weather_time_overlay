@@ -1,52 +1,101 @@
-# Live weather and time overlay for OBS
+# Live Weather and Time Overlay for OBS
 
-screenshot:<br>
+A lightweight weather + clock browser overlay for OBS Studio.
 
-<center>
-<img src="./preview.png"></center>
+> Original project by **[@ngholson](https://github.com/ngholson/obs_weather_time_overlay)**.  
+> This repository is an updated fork that keeps the original concept while improving clarity and compatibility.
 
-# <a href="https://github.com/ngholson/obs_weather_time_overlay/archive/refs/heads/main.zip">Download here</a>
+## Preview
 
-**This requires a <a href="https://home.openweathermap.org/users/sign_up">free API key</a> from OpenWeatherMap.org**<br><i>make sure you sign up for the free api key under the "<b>professional collections</b>" section and <b>NOT</b> the "One Call by Call" or the API 3.0 subscription plan.</i>
+<p align="center">
+  <img src="./preview.png" alt="Weather and time overlay preview">
+</p>
 
-Multi-Language Support. Reads default language information from browser (in this case OBS) and displays output in that language.
+## Download
 
-<B>NOTE: IT WILL TAKE 5-10 MINUTES FOR YOUR NEW API KEY TO BECOME ACTIVE. PLEASE BE PATIENT.</b>
+You can download the original project archive here:  
+[Download original ZIP](https://github.com/ngholson/obs_weather_time_overlay/archive/refs/heads/main.zip)
 
-After you have downloaded and extracted the .zip file, open the `weatherWidget.html` file with any text editor<br> and change the following variables:<br><br>
-<b><i>Required:</b></i><br>
-`yourApiKey` Your OpenWeatherMap API key.<br>
-`yourCity` Your city name. <i>(example:</i>`London, UK` <i>or</i> `Las Vegas, NV, US` <i>or</i> `Kiev`<i>)</i><br>
-`yourUnits` fahrenheit, celsius, kelvin. (`imperial`, `metric`, `standard`)<br>
+---
 
-<b><i>Optional:</b></i><br>
-`weatherDisplay` options: `full`, `weather`, `simple`, `temp`, `time` (`temp` and `time` only display temp or time)<br>
-`weatherIcons` turns on weather display icons: `1`=on `0`=off<br>
-`iconPack` set which icons to use. (1-3) (add your own, see the text file in the images folder.)<br>
-`iconHeight` weather Icon height (for best results use textSize + 2. ex: textSize = 20pt + 2 = 22px)<br>
-`textSize` text size<br>
-`textColor` text color<br>
-`weatherBackground` weather box color (if `dynamicBackground` is enabled, this will only apply during the day hours)<br>
-`dynamicBackground` weather box will change based on day/night. `1`=on `0`=off<br>
-`clockSeperator` optional: seperator for the temp and time in full mode only (ex: `-`, `/`, `.`, `*`, blank spaces, etc.)<br>
-`time24hour` if enabled time is displayed in 24hr format vs 12hr format<br>
-`weatherBorder` border size around weather display<br>
-`autoCheckUpdates` if enabled overlay will check for updates when first loads.<br>
+## What’s Updated in This Fork
 
-<br>
-Save the file and open OBS-Studio
+This fork modernizes and maintains the overlay while preserving the original behavior:
 
-in OBS, add a new "browser" source to the scene you want to dispaly the weather and time.
-change the URL for the source to the path of the `weatherWidget.html` file you just saved.
-change the height and width to 1920x1080.
+- Cleaned up and corrected README instructions
+- Clarified setup flow for OBS browser sources
+- Fixed terminology and typo issues (for example: *separator*, *display*, etc.)
+- Kept configuration options and usage style the same for easy migration
 
-save and position as needed.
+---
 
-<b>KNOWN ISSUE:</b><br>
-If your town shares a name with another town, for instance Long Beach, CA and Long Beach, MS. The larger area can use just the short format variable "long beach", in fact in some cases <i>must</i> use the short format, but the smaller city/town would need to use the long format "long beach, ms, usa". <br><br>
+## Requirements
 
-REMEMBER: IT WILL TAKE 5-10 MINUTES FOR YOUR API KEY TO BECOME ACTIVE. THIS WILL NOT WORK UNTIL IT DOES.
+You need a free API key from OpenWeatherMap:  
+[Sign up here](https://home.openweathermap.org/users/sign_up)
 
-<center>
-<img src="./preview.png">
-</center>
+> When signing up, use the **free API key** under the standard weather offerings.  
+> You do **not** need One Call 3.0 paid access for this project’s basic usage.
+
+**Important:** New API keys may take **5–10 minutes** to become active.
+
+---
+
+## Setup Instructions
+
+After downloading and extracting the project, open `weatherWidget.html` in a text editor and configure the variables below.
+
+### Required Settings
+
+- `yourApiKey` — Your OpenWeatherMap API key
+- `yourCity` — Your city/location  
+  Examples: `London, UK`, `Las Vegas, NV, US`, `Kyiv`
+- `yourUnits` — Temperature units  
+  - `imperial` (Fahrenheit)  
+  - `metric` (Celsius)  
+  - `standard` (Kelvin)
+
+### Optional Settings
+
+- `weatherDisplay` — `full`, `weather`, `simple`, `temp`, `time`
+- `weatherIcons` — Show weather icons (`1` = on, `0` = off)
+- `iconPack` — Icon set number (1–3)
+- `iconHeight` — Icon height in pixels  
+  Tip: `textSize + 2` often looks best (example: textSize 20 → iconHeight 22)
+- `textSize` — Text size
+- `textColor` — Text color
+- `weatherBackground` — Background color for weather box  
+  (If `dynamicBackground` is enabled, this mainly applies during daytime.)
+- `dynamicBackground` — Day/night background switching (`1` = on, `0` = off)
+- `clockSeparator` — Separator between temperature and time in `full` mode (examples: `-`, `/`, `.`, `*`, or spaces)
+- `time24hour` — 24-hour clock format toggle
+- `weatherBorder` — Border size around weather display
+- `autoCheckUpdates` — Check for updates on initial load
+
+---
+
+## Add to OBS Studio
+
+1. Save your changes in `weatherWidget.html`.
+2. Open OBS Studio.
+3. Add a new **Browser Source** to your scene.
+4. Set the Browser Source URL to the local file path of your `weatherWidget.html`.
+5. Set source dimensions to `1920 x 1080` (or your preferred canvas size).
+6. Position and scale as needed.
+
+---
+
+## Notes
+
+- Multi-language support is included (uses browser/OBS locale).
+- If weather does not appear immediately, verify:
+  - API key is active
+  - City format is valid
+  - Internet access is available for the Browser Source
+
+---
+
+## Credits
+
+- **Original Creator:** [ngholson](https://github.com/ngholson/obs_weather_time_overlay)
+- **Maintained Fork:** [Programmer4264](https://github.com/Programmer4264/obs_weather_time_overlay)
